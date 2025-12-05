@@ -14,14 +14,15 @@
 ## 📑 Table of Contents
 1. [Overview](#-overview)
 2. [Pipeline Architecture](#-pipeline-architecture)
-3. [Datasets](#-datasets)
-4. [Modeling Approach](#-modeling-approach)
-5. [Results & Evaluation](#-results--evaluation)
-6. [Explainable AI (XAI)](#-explainable-ai-xai)
-7. [Demo Application](#-demo-application)
-8. [Installation & Usage](#-installation--usage)
-9. [References](#-references)
-10. [Contributors](#-contributors)
+3. [Installation & Usage](#-installation--usage)
+4. [Project Structure](#-project-structure)
+5. [Datasets](#-datasets)
+6. [Modeling Approach](#-modeling-approach)
+7. [Results & Evaluation](#-results--evaluation)
+8. [Explainable AI (XAI)](#-explainable-ai-xai)
+9. [Demo Application](#-demo-application)
+10. [References](#-references)
+11. [Contributors](#-contributors)
 
 ---
 
@@ -48,6 +49,100 @@ Disease context: **[Example: Prostate Cancer]**
 1. **Stage 1**: Predict bioactivity (pIC50) using Random Forest or LSTM/GRU
 2. **Stage 2**: Filter compounds based on ADMET safety properties
 3. **Stage 3**: Explain predictions with XAI visualizations
+
+---
+
+## 💻 Installation & Usage
+
+### **Prerequisites**
+- Python 3.8 - 3.11
+- [UV package manager](https://docs.astral.sh/uv/) (recommended)
+
+### **Quick Start with UV**
+
+#### 1️⃣ Install UV
+```powershell
+# Windows
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+#### 2️⃣ Clone Repository
+```bash
+git clone https://github.com/TuyenTrungLe/Computational-Drug-Discovery.git
+cd Computational-Drug-Discovery
+```
+
+#### 3️⃣ Setup Environment
+```powershell
+# Create virtual environment
+uv venv
+
+# Activate environment
+# Windows PowerShell:
+.\.venv\Scripts\Activate.ps1
+# macOS/Linux:
+# source .venv/bin/activate
+
+# Install all dependencies
+uv pip install -e .
+```
+
+#### 4️⃣ Run Project
+```powershell
+# Open Jupyter Notebook
+jupyter notebook
+
+# Or run Streamlit app
+streamlit run app/app.py
+```
+
+### **Common UV Commands**
+```powershell
+# Install new package
+uv pip install package-name
+
+# List installed packages
+uv pip list
+
+# Update dependencies
+uv pip install -e .
+```
+
+### **Alternative: Traditional pip (not recommended)**
+```bash
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e .
+```
+
+---
+
+## 📁 Project Structure
+
+```
+Computational-Drug-Discovery/
+├── 📂 src/                    # Source code
+│   ├── data/                  # Data processing modules
+│   ├── models/                # ML/DL models
+│   ├── features/              # Feature engineering
+│   ├── visualization/         # Plotting & XAI
+│   └── utils/                 # Utilities
+├── 📂 notebooks/              # Jupyter notebooks
+├── 📂 data/                   # Data directory
+│   ├── raw/                   # Raw data
+│   ├── processed/             # Processed data
+│   └── external/              # External datasets
+├── 📂 models/                 # Saved models
+├── 📂 app/                    # Streamlit application
+├── 📂 configs/                # Configuration files
+├── 📂 tests/                  # Unit tests
+├── 📂 static/                 # Static assets
+├── pyproject.toml             # Project dependencies
+└── README.md                  # Documentation
+```
 
 ---
 
@@ -126,29 +221,6 @@ A user‑friendly Streamlit application:
 - Export final candidate list  
 - View XAI heatmaps  
 
-### Run App:
-```bash
-streamlit run app.py
-```
-
----
-
-## 💻 Installation & Usage
-
-### **1. Clone Repository**
-```bash
-git clone https://github.com/your-username/drug-discovery-project.git
-cd drug-discovery-project
-```
-
-### **2. Install Dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-### **3. Run Training Notebook**
-Open: `Final_Project_Notebook.ipynb`
-
 ---
 
 ## 📚 References
@@ -166,4 +238,4 @@ Open: `Final_Project_Notebook.ipynb`
 
 ---
 
-*This README was auto‑generated via ChatGPT (Option C – Professional Edition).*
+*Capstone Project - Computational Drug Discovery Track C*
