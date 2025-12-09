@@ -198,6 +198,16 @@ def render():
                 total_compounds = len(df)
                 num_batches = (total_compounds + batch_size - 1) // batch_size
 
+                # Import the real model predictor
+                try:
+                    from app.utils.model_loader import predict_batch as batch_predict
+                except ImportError:
+                    # Fallback for import issues
+                    import sys
+                    from pathlib import Path
+                    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+                    from app.utils.model_loader import predict_batch as batch_predict
+
                 for batch_idx in range(num_batches):
                     start_idx = batch_idx * batch_size
                     end_idx = min(start_idx + batch_size, total_compounds)
@@ -206,23 +216,17 @@ def render():
 
                     status_text.text(f"Processing batch {batch_idx + 1}/{num_batches}...")
 
-                    # Placeholder predictions (replace with actual model)
-                    for idx, row in batch_df.iterrows():
-                        smiles = row[smiles_col]
+                    # Get SMILES from batch
+                    batch_smiles = batch_df[smiles_col].tolist()
 
-                        # Simulate prediction
-                        result = {
-                            'SMILES': smiles,
-                            'predicted_pIC50': np.random.uniform(4.0, 9.0),
-                            'confidence': np.random.uniform(0.6, 0.95),
-                            'activity': None,
-                            'MW': np.random.uniform(200, 500),
-                            'LogP': np.random.uniform(0, 5)
-                        }
+                    # Get real predictions using the trained model
+                    batch_results_df = batch_predict(batch_smiles, model_type='rf', batch_size=len(batch_smiles))
 
-                        result['activity'] = 'Active' if result['predicted_pIC50'] >= 6.0 else 'Inactive'
+                    # Merge with original data
+                    for idx, (orig_idx, row) in enumerate(batch_df.iterrows()):
+                        result = batch_results_df.iloc[idx].to_dict()
 
-                        # Add original columns
+                        # Add original columns (compound_id, name, etc.)
                         for col in df.columns:
                             if col != smiles_col:
                                 result[col] = row[col]
