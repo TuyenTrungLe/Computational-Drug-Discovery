@@ -345,8 +345,7 @@ def render():
 
 def predict_bioactivity(smiles: str, model_type: str, has_rdkit: bool) -> dict:
     """
-    Placeholder function for bioactivity prediction
-    TODO: Replace with actual model inference
+    Predict bioactivity using trained Random Forest model
 
     Args:
         smiles: SMILES string
@@ -356,42 +355,47 @@ def predict_bioactivity(smiles: str, model_type: str, has_rdkit: bool) -> dict:
     Returns:
         Dictionary containing prediction results
     """
-    # Placeholder prediction logic
-    # In production, this would load trained models and make real predictions
+    # Import the real model predictor
+    try:
+        from app.utils.model_loader import predict_bioactivity as model_predict
+    except ImportError:
+        # Fallback for import issues
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+        from app.utils.model_loader import predict_bioactivity as model_predict
 
+    # Get predictions from the real model
+    model_results = model_predict(smiles, model_type='rf')
+
+    # Format results for the UI
     results = {
-        'pIC50': np.random.uniform(5.0, 8.5),  # Placeholder
-        'confidence': np.random.uniform(0.7, 0.95),  # Placeholder
-        'descriptors': {
-            'MW': np.random.uniform(200, 450),
-            'LogP': np.random.uniform(1, 4),
-            'HBD': np.random.randint(0, 5),
-            'HBA': np.random.randint(2, 8),
-            'RotBonds': np.random.randint(2, 10),
-            'TPSA': np.random.uniform(40, 120)
-        }
+        'pIC50': model_results['pIC50'],
+        'confidence': model_results['confidence'],
+        'IC50': model_results['IC50'],
+        'descriptors': {}
     }
 
-    results['IC50'] = 10 ** (-results['pIC50']) * 1e9  # Convert to nM
+    # Extract descriptors from model results
+    if model_results.get('descriptors'):
+        desc = model_results['descriptors']
+        results['descriptors'] = {
+            'MW': desc.get('MW', 0),
+            'LogP': desc.get('LogP', 0),
+            'HBD': desc.get('NumHDonors', 0),
+            'HBA': desc.get('NumHAcceptors', 0),
+            'RotBonds': desc.get('NumRotatableBonds', 0),
+            'TPSA': desc.get('TPSA', 0)
+        }
 
     if has_rdkit:
         try:
             from rdkit import Chem
-            from rdkit.Chem import Descriptors, Draw
-            import matplotlib.pyplot as plt
-            from io import BytesIO
+            from rdkit.Chem import Draw
 
             mol = Chem.MolFromSmiles(smiles)
             if mol:
                 results['mol'] = mol
-
-                # Calculate actual descriptors
-                results['descriptors']['MW'] = Descriptors.MolWt(mol)
-                results['descriptors']['LogP'] = Descriptors.MolLogP(mol)
-                results['descriptors']['HBD'] = Descriptors.NumHDonors(mol)
-                results['descriptors']['HBA'] = Descriptors.NumHAcceptors(mol)
-                results['descriptors']['RotBonds'] = Descriptors.NumRotatableBonds(mol)
-                results['descriptors']['TPSA'] = Descriptors.TPSA(mol)
 
                 # Generate XAI visualization (placeholder - would use actual model gradients)
                 # For now, create a simple colored structure
