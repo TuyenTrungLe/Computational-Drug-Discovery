@@ -1,9 +1,161 @@
+# IDE and Editor directories
+.claude/
+.vscode/
+.idea/
+.venv/
+venv/
+ENV/
+env/
+.clinerules/
+.kilocode/
+.roo/
+.windsurf/
+.cursor/
+.kiro/
+.qoder/
+.augment/
 
-.clinerules/byterover-rules.md
-.kilocode/rules/byterover-rules.md
-.roo/rules/byterover-rules.md
-.windsurf/rules/byterover-rules.md
-.cursor/rules/byterover-rules.mdc
-.kiro/steering/byterover-rules.md
-.qoder/rules/byterover-rules.md
-.augment/rules/byterover-rules.md
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+# Allow notebooks in notebooks/ directory for documentation
+*.ipynb
+!notebooks/*.ipynb
+
+# pyenv
+.python-version
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Data files (keep structure, ignore large files)
+data/raw/*.csv
+data/processed/*.csv
+data/*.csv
+# *.h5 - tracked by Git LFS
+*.hdf5
+*.pickle
+# *.pkl - models tracked by Git LFS
+*.pkl
+!models/**/*.pkl
+
+# Model files (keep trained models but ignore large checkpoints)
+models/*.h5
+models/*.ckpt
+models/checkpoints/
+*.pth
+*.pt
+logs/
+runs/
+wandb/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Large datasets
+*.tar.gz
+*.zip
+*.7z
+*.rar
+
+# API keys and secrets
+.env
+.env.local
+secrets.json
+credentials.json
+config.local.yml
+
+# Streamlit
+.streamlit/secrets.toml
+
+# MLflow
+mlruns/
+
+# TensorBoard
+events.out.tfevents.*
+
+# Backup files
+*.bak
+*.backup
+*_backup.*
