@@ -161,27 +161,30 @@ def render():
             st.info("ADMET prediction will evaluate all selected properties and filter compounds accordingly")
 
         if run_admet:
-            with st.spinner("Running ADMET predictions..."):
-                # Placeholder for actual ADMET model predictions
+            with st.spinner("Running ADMET predictions with trained models..."):
+                # Use actual ADMET model predictions
                 admet_results = predict_admet_properties(compounds_df)
 
-                # Apply filters
-                filtered_results = apply_admet_filters(
-                    admet_results,
-                    enable_tox21=enable_tox21,
-                    tox21_threshold=tox21_threshold if enable_tox21 else None,
-                    enable_solubility=enable_solubility,
-                    solubility_range=solubility_range if enable_solubility else None,
-                    enable_bbbp=enable_bbbp,
-                    bbbp_requirement=bbbp_requirement if enable_bbbp else None,
-                    enable_lipinski=enable_lipinski
-                )
+                if admet_results is not None:
+                    # Apply filters
+                    filtered_results = apply_admet_filters(
+                        admet_results,
+                        enable_tox21=enable_tox21,
+                        tox21_threshold=tox21_threshold if enable_tox21 else None,
+                        enable_solubility=enable_solubility,
+                        solubility_range=solubility_range if enable_solubility else None,
+                        enable_bbbp=enable_bbbp,
+                        bbbp_requirement=bbbp_requirement if enable_bbbp else None,
+                        enable_lipinski=enable_lipinski
+                    )
 
-                # Store in session state
-                st.session_state['admet_results'] = admet_results
-                st.session_state['filtered_admet'] = filtered_results
+                    # Store in session state
+                    st.session_state['admet_results'] = admet_results
+                    st.session_state['filtered_admet'] = filtered_results
 
-            st.success(f"✓ ADMET analysis completed!")
+                    st.success(f"✓ ADMET analysis completed! Analyzed {len(admet_results)} compounds.")
+                else:
+                    st.error("Failed to run ADMET predictions. Please check the error messages above.")
 
         # Display results
         if 'admet_results' in st.session_state:
@@ -411,39 +414,25 @@ def render():
 
 def predict_admet_properties(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Placeholder for ADMET property prediction
-    TODO: Replace with actual trained ADMET models
+    Predict ADMET properties using trained models
     """
-    results = df.copy()
+    try:
+        # Import ADMET predictor
+        from utils.admet_predictor import predict_batch_df, is_admet_available
 
-    # Simulate ADMET predictions
-    results['tox21_prob'] = np.random.uniform(0, 1, len(df))
-    results['logS'] = np.random.uniform(-8, 0, len(df))
-    results['bbbp_prob'] = np.random.uniform(0, 1, len(df))
-    results['MW'] = np.random.uniform(150, 600, len(df))
-    results['LogP'] = np.random.uniform(-2, 7, len(df))
-    results['HBD'] = np.random.randint(0, 8, len(df))
-    results['HBA'] = np.random.randint(0, 12, len(df))
+        if not is_admet_available():
+            st.error("⚠️ ADMET models not available. Please ensure models are trained and saved in models/admet_models/")
+            return None
 
-    # Calculate pass/fail
-    results['tox21_pass'] = results['tox21_prob'] < 0.5
-    results['solubility_pass'] = (results['logS'] >= -6) & (results['logS'] <= 0)
-    results['lipinski_pass'] = (
-        (results['MW'] <= 500) &
-        (results['LogP'] <= 5) &
-        (results['HBD'] <= 5) &
-        (results['HBA'] <= 10)
-    )
-    results['bbbp_pass'] = True  # Placeholder
+        # Use actual trained models
+        results = predict_batch_df(df, smiles_col='SMILES')
+        return results
 
-    # Overall score
-    results['overall_score'] = (
-        results['tox21_pass'].astype(int) * 0.4 +
-        results['solubility_pass'].astype(int) * 0.3 +
-        results['lipinski_pass'].astype(int) * 0.3
-    )
-
-    return results
+    except Exception as e:
+        st.error(f"Error during ADMET prediction: {e}")
+        import traceback
+        st.code(traceback.format_exc())
+        return None
 
 
 def apply_admet_filters(df: pd.DataFrame, **filters) -> pd.DataFrame:
