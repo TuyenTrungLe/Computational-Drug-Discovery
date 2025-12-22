@@ -7,7 +7,7 @@ authors = [
     { name = "Bùi Hoàng Nhân" }
 ]
 readme = "README.md"
-requires-python = ">=3.8,<3.12"
+requires-python = ">=3.9,<3.13"
 license = { text = "MIT" }
 keywords = ["drug-discovery", "machine-learning", "deep-learning", "cheminformatics", "ADMET"]
 classifiers = [
@@ -24,48 +24,35 @@ classifiers = [
 
 dependencies = [
     # Core Data Science
-    "numpy>=1.21.0,<2.0.0",
-    "pandas>=1.3.0,<3.0.0",
-    "scipy>=1.7.0",
+    "numpy>=1.24.0,<2.0.0",
+    "pandas>=2.0.0,<3.0.0",
+    "scipy>=1.10.0",
     
-    # Machine Learning
-    "scikit-learn>=1.0.0",
-    "xgboost>=1.5.0",
-    "lightgbm>=3.3.0",
-    "imbalanced-learn>=0.9.0",
+    # Machine Learning (Core - Essential)
+    "scikit-learn>=1.3.0",
+    "joblib>=1.3.0",
     
-    # Deep Learning
-    "tensorflow>=2.8.0,<2.16.0",
-    "keras>=2.8.0,<3.0.0",
+    # Deep Learning (Optional - for LSTM models)
+    "tensorflow>=2.13.0,<2.16.0; python_version<'3.12'",
+    "keras>=2.13.0,<3.0.0; python_version<'3.12'",
     
-    # Cheminformatics
-    "rdkit>=2022.3.1",
-    "deepchem>=2.6.0",
-    "chembl-webresource-client>=0.10.0",
+    # Cheminformatics (Essential for SMILES processing)
+    "rdkit>=2023.3.1",
     
     # Visualization
-    "matplotlib>=3.5.0",
-    "seaborn>=0.11.0",
-    "plotly>=5.0.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "plotly>=5.14.0",
     
-    # Explainability
-    "shap>=0.41.0",
-    "lime>=0.2.0",
+    # Explainability (Optional)
+    "shap>=0.42.0",
     
-    # Web Application
-    "streamlit>=1.20.0",
-    "streamlit-aggrid>=0.3.0",
+    # Web Application (Essential)
+    "streamlit>=1.28.0",
     
     # Utilities
-    "pyyaml>=6.0",
-    "python-dotenv>=0.19.0",
-    "tqdm>=4.62.0",
-    "requests>=2.27.0",
-    
-    # Jupyter
-    "jupyter>=1.0.0",
-    "ipykernel>=6.0.0",
-    "ipywidgets>=7.6.0",
+    "tqdm>=4.65.0",
+    "pillow>=10.0.0",
 ]
 
 [project.optional-dependencies]

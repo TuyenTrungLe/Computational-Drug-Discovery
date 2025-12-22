@@ -14,6 +14,9 @@ import joblib
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+# Import base class
+from app.core.base_predictor import BasePredictor, PredictorFactory
+
 # Import ADMET model
 try:
     from src.models.admet_safety_model import MolecularDescriptorCalculator, ADMETSafetyModel
@@ -23,9 +26,10 @@ except ImportError:
     ADMETSafetyModel = None
 
 
-class ADMETPredictor:
+class ADMETPredictor(BasePredictor):
     """
     ADMET property prediction using trained Random Forest models
+    Inherits from BasePredictor for consistent interface
 
     Models:
         - Toxicity (Tox21): General toxicity prediction
@@ -34,7 +38,7 @@ class ADMETPredictor:
         - Solubility (ESOL): Aqueous solubility
     """
 
-    def __init__(self, models_dir: str = None):
+    def __init__(self, models_dir: Union[str, Path] = None):
         """
         Initialize ADMET predictor
 
@@ -44,8 +48,7 @@ class ADMETPredictor:
         if models_dir is None:
             models_dir = project_root / "models" / "admet_models"
 
-        self.models_dir = Path(models_dir)
-        self.models = {}
+        super().__init__(models_dir)
         self.scalers = {}
         self.descriptor_calculator = MolecularDescriptorCalculator if MolecularDescriptorCalculator else None
 
@@ -55,6 +58,7 @@ class ADMETPredictor:
     def _load_models(self):
         """Load trained ADMET models from disk"""
         model_names = ['toxicity', 'clintox', 'bbbp', 'solubility']
+        loaded_count = 0
 
         for model_name in model_names:
             try:
@@ -64,12 +68,17 @@ class ADMETPredictor:
                 if model_path.exists() and scaler_path.exists():
                     self.models[model_name] = joblib.load(model_path)
                     self.scalers[model_name] = joblib.load(scaler_path)
+                    loaded_count += 1
                     print(f"[OK] Loaded {model_name} model from {model_path}")
                 else:
                     print(f"[WARNING] Model files not found: {model_path}")
 
             except Exception as e:
                 print(f"[WARNING] Error loading {model_name} model: {e}")
+
+        self.is_loaded = loaded_count > 0
+        if self.is_loaded:
+            print(f"[OK] ADMET Predictor initialized successfully")
 
     def _calculate_descriptors(self, smiles: Union[str, List[str]]) -> Optional[np.ndarray]:
         """
@@ -103,6 +112,19 @@ class ADMETPredictor:
             return None, []
 
         return np.array(descriptors), valid_indices
+
+    def predict(self, smiles: Union[str, List[str]]) -> Dict[str, Any]:
+        """
+        Predict ADMET properties for given SMILES
+        Implements BasePredictor interface
+
+        Args:
+            smiles: SMILES string or list of SMILES
+
+        Returns:
+            Dictionary with ADMET predictions
+        """
+        return self.predict_admet(smiles)
 
     def predict_admet(self, smiles: Union[str, List[str]]) -> Dict[str, Any]:
         """
@@ -368,6 +390,8 @@ class ADMETPredictor:
 # Global predictor instance
 try:
     _admet_predictor = ADMETPredictor()
+    # Register with factory
+    PredictorFactory.register_predictor('admet', ADMETPredictor)
     print("[OK] ADMET Predictor initialized successfully")
 except Exception as e:
     print(f"[WARNING] Could not initialize ADMET predictor: {e}")

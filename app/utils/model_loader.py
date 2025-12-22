@@ -13,33 +13,45 @@ import sys
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+# Import base class
+from app.core.base_predictor import BasePredictor, PredictorFactory
 
-class BioactivityPredictor:
+
+class BioactivityPredictor(BasePredictor):
     """
     Bioactivity prediction using trained Random Forest model
+    Inherits from BasePredictor for consistent interface
     """
 
-    def __init__(self, models_dir: str = "models"):
-        self.models_dir = Path(models_dir)
+    def __init__(self, models_dir: Union[str, Path] = "models"):
+        super().__init__(models_dir)
         self.rf_model = None
         self.feature_extractor = None
+        self.feature_selector = None
 
         # Try to import required libraries
         try:
             # Try absolute import first
             from app.utils.feature_extraction import feature_extractor
             self.feature_extractor = feature_extractor
-        except ImportError:
-            try:
-                # Try relative import
-                from .feature_extraction import feature_extractor
-                self.feature_extractor = feature_extractor
-            except ImportError as e:
-                print(f"Warning: Could not import feature extractor: {e}")
+        except ImportError as e:
+            print(f"Warning: Could not import feature extractor: {e}")
 
+        # Load feature selector
+        self._load_feature_selector()
+        
         # Load models
         self._load_models()
 
+    def _load_feature_selector(self):
+        """Load or create feature selector"""
+        try:
+            from app.utils.feature_selector import ensure_selector_exists
+            self.feature_selector = ensure_selector_exists(str(self.models_dir))
+        except Exception as e:
+            print(f"[WARNING] Could not load feature selector: {e}")
+            self.feature_selector = None
+    
     def _load_models(self):
         """Load trained models from disk"""
         try:
@@ -49,13 +61,17 @@ class BioactivityPredictor:
             rf_path = self.models_dir / "random_forest_regressor_model.joblib"
             if rf_path.exists():
                 self.rf_model = joblib.load(rf_path)
+                self.models['random_forest'] = self.rf_model
+                self.is_loaded = True
                 print(f"[OK] Loaded Random Forest model from {rf_path}")
                 print(f"  Model expects {self.rf_model.n_features_in_} features")
             else:
                 print(f"[WARNING] Model file not found: {rf_path}")
+                self.is_loaded = False
 
         except Exception as e:
             print(f"[WARNING] Error loading models: {e}")
+            self.is_loaded = False
 
     def _extract_features(self, smiles: Union[str, List[str]]) -> np.ndarray:
         """
@@ -76,22 +92,30 @@ class BioactivityPredictor:
         # Calculate PubChem fingerprints (881 features)
         features_df = self.feature_extractor.calculate_pubchem_fingerprint_dataframe(smiles)
 
-        # The model expects 167 features after VarianceThreshold
-        # Since we don't have the exact VarianceThreshold selector saved,
-        # we'll use a simple feature selection: take every 5th feature
-        # This is a simplified approach - ideally the selector should be saved
-        n_features_needed = self.rf_model.n_features_in_ if self.rf_model else 167
-
-        if features_df.shape[1] >= n_features_needed:
-            # Simple feature selection - take evenly spaced features
+        # Apply feature selection to get 167 features
+        if self.feature_selector is not None:
+            selected_features = self.feature_selector.transform(features_df.values)
+        else:
+            # Fallback: use evenly spaced features
+            n_features_needed = self.rf_model.n_features_in_ if self.rf_model else 167
             indices = np.linspace(0, features_df.shape[1] - 1, n_features_needed, dtype=int)
             selected_features = features_df.iloc[:, indices].values
-        else:
-            # Pad with zeros if we don't have enough features
-            padding = np.zeros((features_df.shape[0], n_features_needed - features_df.shape[1]))
-            selected_features = np.hstack([features_df.values, padding])
+            print(f"[WARNING] Using fallback feature selection")
 
         return selected_features
+
+    def predict(self, smiles: Union[str, List[str]]) -> Dict[str, Any]:
+        """
+        Predict bioactivity (pIC50) for SMILES
+        Implements BasePredictor interface
+
+        Args:
+            smiles: SMILES string or list of SMILES
+
+        Returns:
+            Dictionary with predictions and metadata
+        """
+        return self.predict_bioactivity(smiles, model_type='rf')
 
     def predict_bioactivity(self, smiles: Union[str, List[str]],
                            model_type: str = 'rf') -> Dict[str, Any]:
@@ -251,6 +275,8 @@ class BioactivityPredictor:
 # Global predictor instance
 try:
     _predictor = BioactivityPredictor()
+    # Register with factory
+    PredictorFactory.register_predictor('bioactivity', BioactivityPredictor)
 except Exception as e:
     print(f"Warning: Could not initialize predictor: {e}")
     _predictor = None
