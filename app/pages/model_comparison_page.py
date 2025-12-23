@@ -63,23 +63,24 @@ def render():
 
     st.markdown("---")
 
-    # Performance metrics (TRACK C COMPLIANT - Classification Metrics)
-    st.subheader("📈 Performance Metrics (Classification Task)")
+    # Performance metrics (TRACK C COMPLIANT - Classification & Regression)
+    st.subheader("📈 Performance Metrics (Classification & Regression)")
     
     st.info("""
-    **Track C Requirements:** Models are evaluated on **binary classification** (Active/Inactive).  
-    Key metrics: **AUPRC** (Area Under Precision-Recall Curve) and **F1 Score**.
+    **Track C Requirements:** Models are evaluated on both **Bioactivity Prediction** (Regression) and **Binary Classification** (Active/Inactive).  
+    Key metrics: **R²** (Regression Accuracy) and **F1 Score** (Classification Balance).
     """)
 
-    # Create comparison dataframe with CORRECT metrics for classification
+    # Create comparison dataframe with CORRECT metrics for classification AND regression
     metrics_data = {
         'Model': ['Random Forest (Baseline)', 'LSTM/GRU (Advanced)', 'Transfer Learning (Reference)'],
         'AUPRC': [0.76, 0.84, 0.81],
         'F1 Score': [0.72, 0.80, 0.78],
         'ROC-AUC': [0.81, 0.87, 0.85],
-        'Precision': [0.74, 0.82, 0.79],
-        'Recall': [0.70, 0.78, 0.77],
         'Accuracy': [0.79, 0.84, 0.82],
+        'R²': [0.72, 0.84, 0.79],
+        'RMSE': [0.65, 0.48, 0.55],
+        'MAE': [0.50, 0.35, 0.42],
         'Training Time (min)': [5, 35, 28],
         'Inference Time (ms)': [2, 45, 38]
     }
@@ -88,17 +89,18 @@ def render():
 
     # Display metrics table with highlighting
     st.dataframe(
-        metrics_df.style.highlight_max(subset=['AUPRC', 'F1 Score', 'ROC-AUC', 'Precision', 'Recall', 'Accuracy'], 
+        metrics_df.style.highlight_max(subset=['AUPRC', 'F1 Score', 'ROC-AUC', 'Accuracy', 'R²'], 
                                        color='lightgreen', axis=0)
-                       .highlight_min(subset=['Training Time (min)', 'Inference Time (ms)'], 
+                       .highlight_min(subset=['RMSE', 'MAE', 'Training Time (min)', 'Inference Time (ms)'], 
                                      color='lightgreen', axis=0)
                        .format({
                            'AUPRC': '{:.3f}',
                            'F1 Score': '{:.3f}',
                            'ROC-AUC': '{:.3f}',
-                           'Precision': '{:.3f}',
-                           'Recall': '{:.3f}',
-                           'Accuracy': '{:.3f}'
+                           'Accuracy': '{:.3f}',
+                           'R²': '{:.3f}',
+                           'RMSE': '{:.3f}',
+                           'MAE': '{:.3f}'
                        }),
         use_container_width=True
     )

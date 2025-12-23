@@ -23,40 +23,7 @@ def render():
 
     st.markdown("---")
 
-    # Debug Section (Temporary, for fixing RDKit issues)
-    with st.expander("🛠️ Toubleshooting & System Info", expanded=False):
-        st.write(f"Python Executable: {sys.executable}")
-        st.write(f"Python Version: {sys.version}")
-        
-        try:
-            import rdkit
-            st.success(f"✅ RDKit installed: {rdkit.__file__} (v{getattr(rdkit, '__version__', 'Unknown')})")
-            from rdkit import Chem
-            from rdkit.Chem import Descriptors
-            st.success("✅ RDKit.Chem and Descriptors imported successfully")
-        except Exception as e:
-            st.error(f"❌ RDKit Error: {e}")
-            
-        try:
-            from app.utils.admet_predictor import ADMETPredictor
-            from src.models.admet_safety_model import MolecularDescriptorCalculator
-            st.success("✅ ADMET modules imported successfully")
-            
-            # Test Instantiation
-            with st.spinner("Testing Model Loading..."):
-                predictor = ADMETPredictor()
-                if predictor.is_loaded:
-                    st.success(f"✅ Predictor initialized. Models loaded: {list(predictor.models.keys())}")
-                    # Test Prediction
-                    res = predictor.predict("CC(=O)Oc1ccccc1C(=O)O")
-                    st.write("Test Prediction Result:", res)
-                else:
-                    st.error("❌ Predictor initialized but NO models loaded.")
-                    
-        except Exception as e:
-            st.error(f"❌ ADMET Project Module Error: {e}")
-            import traceback
-            st.code(traceback.format_exc())
+
 
     # Instructions
     with st.expander("📖 Instructions", expanded=True):
@@ -138,8 +105,6 @@ def render():
             step=10,
             help="Number of compounds to process at once"
         )
-
-        apply_filters = st.checkbox("Apply ADMET Filters", value=False)
 
     st.markdown("---")
 
@@ -496,37 +461,38 @@ def render():
                         
                         with funnel_col1:
                             st.markdown("""
-                            <div style='background: #90caf9; padding: 1rem; border-radius: 6px; text-align: center; border: 3px solid #1976d2;'>
-                                <h3 style='color: #0d47a1; margin: 0; font-size: 1.5rem; font-weight: 700;'>{}</h3>
-                                <p style='margin: 0.3rem 0 0 0; font-size: 0.9rem; color: #1565c0; font-weight: 600;'>Total Input</p>
+                            <div style='background: #90caf9; border-radius: 8px; border: 3px solid #1976d2; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 35px; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
+                                <div style='color: #0d47a1; margin: 0; font-size: 1.8rem; font-weight: 700; line-height: 1.2;'>{}</div>
+                                <p style='margin: 0; font-size: 1rem; color: #1565c0; font-weight: 600; line-height: 1.2;'>Total Input</p>
+                                <p style='margin: 0; font-size: 0.9rem; visibility: hidden; line-height: 1.2;'>Placeholder</p>
                             </div>
                             """.format(len(final_df)), unsafe_allow_html=True)
                         
                         with funnel_col2:
                             st.markdown("""
-                            <div style='background: #ffcc80; padding: 1rem; border-radius: 6px; text-align: center; border: 3px solid #f57c00;'>
-                                <h3 style='color: #e65100; margin: 0; font-size: 1.5rem; font-weight: 700;'>{}</h3>
-                                <p style='margin: 0.3rem 0 0 0; font-size: 0.9rem; color: #ef6c00; font-weight: 600;'>✅ Active</p>
-                                <p style='margin: 0; font-size: 0.8rem; color: #bf360c; font-weight: 500;'>{:.1f}% passed</p>
+                            <div style='background: #ffcc80; border-radius: 8px; border: 3px solid #f57c00; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 35px; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
+                                <div style='color: #e65100; margin: 0; font-size: 1.8rem; font-weight: 700; line-height: 1.2;'>{}</div>
+                                <p style='margin: 0; font-size: 1rem; color: #ef6c00; font-weight: 600; line-height: 1.2;'>✅ Active</p>
+                                <p style='margin: 0; font-size: 0.9rem; color: #bf360c; font-weight: 500; line-height: 1.2;'>{:.1f}% passed</p>
                             </div>
                             """.format(len(active_df), len(active_df)/len(final_df)*100), unsafe_allow_html=True)
                         
                         with funnel_col3:
                             st.markdown("""
-                            <div style='background: #a5d6a7; padding: 1rem; border-radius: 6px; text-align: center; border: 3px solid #388e3c;'>
-                                <h3 style='color: #1b5e20; margin: 0; font-size: 1.5rem; font-weight: 700;'>{}</h3>
-                                <p style='margin: 0.3rem 0 0 0; font-size: 0.9rem; color: #2e7d32; font-weight: 600;'>✅ Non-Toxic</p>
-                                <p style='margin: 0; font-size: 0.8rem; color: #388e3c; font-weight: 500;'>{:.1f}% of Active</p>
+                            <div style='background: #a5d6a7; border-radius: 8px; border: 3px solid #388e3c; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 35px; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
+                                <div style='color: #1b5e20; margin: 0; font-size: 1.8rem; font-weight: 700; line-height: 1.2;'>{}</div>
+                                <p style='margin: 0; font-size: 1rem; color: #2e7d32; font-weight: 600; line-height: 1.2;'>✅ Non-Toxic</p>
+                                <p style='margin: 0; font-size: 0.9rem; color: #388e3c; font-weight: 500; line-height: 1.2;'>{:.1f}% of Active</p>
                             </div>
                             """.format(len(keep_df), len(keep_df)/len(active_df)*100 if len(active_df) > 0 else 0), unsafe_allow_html=True)
                         
                         with funnel_col4:
                             st.markdown("""
                             <div style='background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%); 
-                                        padding: 1rem; border-radius: 6px; text-align: center; border: 3px solid #1b5e20; box-shadow: 0 4px 6px rgba(0,0,0,0.2);'>
-                                <h3 style='color: white; margin: 0; font-size: 1.5rem; font-weight: 700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);'>{}</h3>
-                                <p style='margin: 0.3rem 0 0 0; color: white; font-weight: 700; font-size: 0.9rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);'>🎯 KEEP</p>
-                                <p style='margin: 0; font-size: 0.8rem; color: white; font-weight: 600;'>{:.1f}% of Total</p>
+                                        border-radius: 8px; border: 3px solid #1b5e20; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 35px; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);'>
+                                <div style='color: white; margin: 0; font-size: 1.8rem; font-weight: 700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); line-height: 1.2;'>{}</div>
+                                <p style='margin: 0; color: white; font-weight: 700; font-size: 1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); line-height: 1.2;'>🎯 KEEP</p>
+                                <p style='margin: 0; font-size: 0.9rem; color: white; font-weight: 600; line-height: 1.2;'>{:.1f}% of Total</p>
                             </div>
                             """.format(len(keep_df), len(keep_df)/len(final_df)*100), unsafe_allow_html=True)
                         
@@ -789,7 +755,127 @@ def render():
                     )
 
             elif validate_only:
-                st.info("SMILES validation feature coming soon!")
+                st.markdown("---")
+                st.subheader("🧪 SMILES Validation Results")
+                
+                valid_count = 0
+                invalid_count = 0
+                validation_results = []
+                
+                # Progress bar
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                status_text.text("Initializing validation...")
+                
+                try:
+                    from rdkit import Chem
+                    has_rdkit = True
+                except ImportError:
+                    has_rdkit = False
+                    st.warning("⚠️ RDKit not installed. Performing basic string validation only.")
+                
+                total_rows = len(df)
+                
+                for idx, row in df.iterrows():
+                    smiles = row[smiles_col]
+                    is_valid = False
+                    error_msg = "Unknown error"
+                    
+                    # Basic conversion to string
+                    smiles_str = str(smiles).strip() if pd.notna(smiles) else ""
+                    
+                    if len(smiles_str) == 0:
+                        is_valid = False
+                        error_msg = "Empty value"
+                    elif has_rdkit:
+                        try:
+                            # RDKit Validation
+                            mol = Chem.MolFromSmiles(smiles_str)
+                            if mol is not None:
+                                is_valid = True
+                                error_msg = "Valid"
+                            else:
+                                is_valid = False
+                                error_msg = "RDKit parsing failed (Invalid syntax)"
+                        except Exception as e:
+                            is_valid = False
+                            error_msg = f"Error: {str(e)}"
+                    else:
+                        # Fallback basic validation
+                        valid_chars = set("CNOPSFIBrClcnops0123456789[]()=#@+-\\/")
+                        if all(c in valid_chars for c in smiles_str):
+                            is_valid = True
+                            error_msg = "Pass (Basic structure check)"
+                        else:
+                            is_valid = False
+                            error_msg = "Contains invalid characters"
+                            
+                    if is_valid:
+                        valid_count += 1
+                    else:
+                        invalid_count += 1
+                        
+                    validation_results.append({
+                        'Row Index': idx + 1,
+                        'Original Row ID': idx,
+                        'SMILES': smiles_str,
+                        'Status': 'Valid' if is_valid else 'Invalid',
+                        'Message': error_msg
+                    })
+                    
+                    # Update progress every 10%
+                    if idx % max(1, total_rows // 10) == 0:
+                         progress_bar.progress((idx + 1) / total_rows)
+                
+                progress_bar.progress(1.0)
+                status_text.text("✓ Validation complete!")
+                
+                # Metrics
+                v_col1, v_col2, v_col3 = st.columns(3)
+                with v_col1:
+                    st.metric("Total Compounds", total_rows)
+                with v_col2:
+                    st.metric("✅ Valid SMILES", valid_count, delta=f"{valid_count/total_rows*100:.1f}%")
+                with v_col3:
+                    st.metric("❌ Invalid SMILES", invalid_count, delta=f"-{invalid_count}", delta_color="inverse")
+                
+                # Detail Table
+                val_df = pd.DataFrame(validation_results)
+                
+                st.markdown("### 📋 Validation Details")
+                
+                # Define simple color styling
+                def style_status(val):
+                    color = '#c8e6c9' if val == 'Valid' else '#ffcdd2'
+                    return f'background-color: {color}'
+
+                # Display with styling
+                st.dataframe(
+                    val_df.style.map(style_status, subset=['Status']),
+                    use_container_width=True
+                )
+                
+                if invalid_count > 0:
+                    st.warning("⚠️ Found invalid SMILES entries.")
+                    col_fix1, col_fix2 = st.columns(2)
+                    with col_fix1:
+                        st.info("💡 **Tip:** Remove these rows from your CSV file and re-upload.")
+                    with col_fix2:
+                         # Export valid only
+                         valid_rows_indices = [res['Original Row ID'] for res in validation_results if res['Status'] == 'Valid']
+                         if valid_rows_indices:
+                             clean_df = df.iloc[valid_rows_indices]
+                             csv_clean = BytesIO()
+                             clean_df.to_csv(csv_clean, index=False)
+                             csv_clean.seek(0)
+                             
+                             st.download_button(
+                                 label="📥 Download Cleaned CSV (Valid Only)",
+                                 data=csv_clean,
+                                 file_name="cleaned_compounds.csv",
+                                 mime="text/csv",
+                                 key="download_clean_csv"
+                             )
 
         except Exception as e:
             st.error(f"Error processing file: {str(e)}")

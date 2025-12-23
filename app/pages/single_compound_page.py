@@ -433,6 +433,56 @@ def render():
                     </ul>
                     </div>
                     """, unsafe_allow_html=True)
+                    
+                    if show_fingerprint:
+                         st.subheader("🧬 Molecular Fingerprint Visualization")
+                         if has_rdkit and results.get('mol') is not None:
+                             try:
+                                 from rdkit.Chem import AllChem
+                                 import matplotlib.pyplot as plt
+                                 
+                                 # Generate Morgan Fingerprint
+                                 fp = AllChem.GetMorganFingerprintAsBitVect(results['mol'], 2, nBits=1024)
+                                 
+                                 # Convert to numpy array for visualization
+                                 import numpy as np
+                                 arr = np.zeros((1,))
+                                 from rdkit import DataStructs
+                                 DataStructs.ConvertToNumpyArray(fp, arr)
+                                 
+                                 # Find active bits
+                                 on_bits = list(fp.GetOnBits())
+                                 
+                                 col_fp1, col_fp2 = st.columns([2, 1])
+                                 
+                                 with col_fp1:
+                                     # Visualize as a barcode-like strip
+                                     fig, ax = plt.subplots(figsize=(10, 2))
+                                     ax.eventplot(on_bits, orientation='horizontal', colors='#43a047', linelengths=0.8)
+                                     ax.set_xlim(0, 1024)
+                                     ax.set_yticks([])
+                                     ax.set_xlabel("Bit Index (Structural Feature ID)")
+                                     ax.set_title("Active Fingerprint Bits (Morgan FP, r=2, 1024 bits)")
+                                     ax.spines['top'].set_visible(False)
+                                     ax.spines['right'].set_visible(False)
+                                     ax.spines['left'].set_visible(False)
+                                     st.pyplot(fig)
+                                     
+                                 with col_fp2:
+                                     st.info(f"""
+                                     **Fingerprint Stats:**
+                                     - **Total Bits:** 1024
+                                     - **Active Bits:** {len(on_bits)}
+                                     - **Density:** {len(on_bits)/1024:.1%}
+                                     """)
+                                     st.caption("Each 'line' represents a specific substructure present in the molecule.")
+                             
+                             except Exception as e:
+                                 st.error(f"Error generating fingerprint: {e}")
+                         else:
+                             st.warning("RDKit is required for Fingerprint visualization.")
+                         
+                         st.markdown("---")
 
                     xai_col1, xai_col2 = st.columns([2, 1])
 

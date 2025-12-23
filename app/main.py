@@ -57,6 +57,43 @@ if __name__ == "__main__":
             font-size: 1.2rem;
         }
         
+        /* Sidebar Styling */
+        section[data-testid="stSidebar"] {
+            background-color: #f8f9fa;
+        }
+
+        /* Navigation Menu Styling */
+        div[data-testid="stRadio"] > label {
+            background-color: transparent;
+            border: 1px solid transparent;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        div[data-testid="stRadio"] > label:hover {
+            background-color: #e3f2fd;
+            border-color: #bbdefb;
+            transform: translateX(5px);
+        }
+
+        /* Active selection styling */
+        div[data-testid="stRadio"] > label[data-checked="true"] {
+             background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+             color: white !important;
+             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        /* Make text inside radio buttons stand out */
+        div[data-testid="stRadio"] p {
+            font-size: 1rem;
+            font-weight: 500;
+            margin: 0;
+        }
+        
         /* Info boxes */
         .info-box {
             background-color: #b3e5fc;
@@ -90,17 +127,25 @@ if __name__ == "__main__":
         
         /* Stage indicators */
         .stage-indicator {
-            display: inline-block;
-            padding: 0.4rem 0.8rem;
-            border-radius: 15px;
+            display: block;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
             font-weight: 600;
-            margin: 0.2rem;
+            margin: 0.5rem 0;
             font-size: 0.9rem;
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.1);
+            transition: transform 0.2s;
         }
         
-        .stage-1 { background-color: #90caf9; color: #0d47a1; }
-        .stage-2 { background-color: #ce93d8; color: #4a148c; }
-        .stage-3 { background-color: #a5d6a7; color: #1b5e20; }
+        .stage-indicator:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stage-1 { background-color: #e3f2fd; color: #1565c0; border-left: 4px solid #1565c0; }
+        .stage-2 { background-color: #f3e5f5; color: #7b1fa2; border-left: 4px solid #7b1fa2; }
+        .stage-3 { background-color: #e8f5e9; color: #2e7d32; border-left: 4px solid #2e7d32; }
         
         /* Buttons */
         .stButton>button {
@@ -110,6 +155,12 @@ if __name__ == "__main__":
             border-radius: 5px;
             padding: 0.5rem 2rem;
             font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .stButton>button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         </style>
     """, unsafe_allow_html=True)
