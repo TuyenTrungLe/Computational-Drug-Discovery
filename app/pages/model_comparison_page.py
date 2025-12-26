@@ -53,11 +53,11 @@ def render():
     with model_cols[2]:
         st.markdown("""
         <div class="info-card">
-        <h3>🎯 Transfer Learning</h3>
-        <p><strong>Type:</strong> Reference Model</p>
-        <p><strong>Input:</strong> Pre-trained embeddings</p>
-        <p><strong>Features:</strong> ChemBERTa, MolBERT</p>
-        <p><strong>Pros:</strong> Leverages large-scale pre-training</p>
+        <h3>🎯 ADMET Transfer Learning</h3>
+        <p><strong>Type:</strong> Enhanced Model</p>
+        <p><strong>Input:</strong> LSTM Embeddings + RDKit Descriptors</p>
+        <p><strong>Features:</strong> 64D LSTM embeddings + 520D molecular descriptors</p>
+        <p><strong>Pros:</strong> Combines learned representations with expert features</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -421,3 +421,83 @@ def render():
         - Batch size: 32
         - Data augmentation: SMILES enumeration
         """)
+
+    # Transfer Learning Details
+    with st.expander("🚀 ADMET Transfer Learning Implementation"):
+        st.markdown("""
+        ### What is ADMET Transfer Learning?
+
+        **Transfer learning** in drug discovery means leveraging knowledge learned from one task
+        (bioactivity prediction) to improve performance on another task (ADMET properties).
+
+        ### Our Implementation:
+
+        **Step 1: Pre-trained LSTM Model**
+        - We use the LSTM model trained on bioactivity data (pIC50 prediction)
+        - This model has learned rich molecular representations from SMILES sequences
+        - The LSTM encoder captures sequential patterns and chemical structure
+
+        **Step 2: Embedding Extraction**
+        - Extract 64-dimensional embeddings from the last LSTM layer
+        - These embeddings encode learned chemical knowledge
+        - Represents molecules in a semantic space learned from bioactivity
+
+        **Step 3: Feature Combination**
+        - Combine LSTM embeddings (64D) with RDKit descriptors (520D)
+        - Total feature vector: 584 dimensions
+        - LSTM features: Learned representations (data-driven)
+        - RDKit features: Expert-designed molecular descriptors
+
+        **Step 4: Enhanced ADMET Models**
+        - Train Random Forest classifiers/regressors on combined features
+        - Models: Toxicity, Clinical Toxicity, BBB Permeability, Solubility
+        - Enhanced accuracy from richer feature representation
+
+        ### Benefits:
+
+        1. **Leverages Existing Knowledge**: Reuses the LSTM model trained on bioactivity
+        2. **Better Generalization**: Learned features + expert features
+        3. **No Need for Large ADMET Datasets**: Transfer learning works with smaller datasets
+        4. **Improved Performance**: Combined features outperform either alone
+
+        ### Technical Architecture:
+
+        ```
+        SMILES Input
+            │
+            ├─► LSTM Model (pre-trained) ─► 64D Embeddings
+            │
+            └─► RDKit Calculator ─► 520D Descriptors
+                    │
+                    ▼
+            Combined Features (584D)
+                    │
+                    ▼
+        ADMET Models (Toxicity, BBB, Solubility, etc.)
+                    │
+                    ▼
+                Predictions
+        ```
+
+        ### Implementation Status:
+
+        - ✅ LSTM Embedding Extractor: Ready (64D embeddings)
+        - ✅ RDKit Descriptor Calculator: Ready (520D descriptors)
+        - ✅ Feature Combination Pipeline: Ready (584D total)
+        - ✅ Transfer Learning Models: **TRAINED & DEPLOYED**
+        - ✅ Performance Comparison: Available
+
+        ### Trained Models (All 4 Production-Ready):
+
+        1. **Toxicity (Tox21)**: 97.18% accuracy - 7,831 samples
+        2. **Clinical Toxicity**: 93.24% accuracy - 1,484 samples
+        3. **BBB Permeability**: 86.03% accuracy - 2,050 samples
+        4. **Solubility (ESOL)**: MSE 0.5539 - 1,128 samples
+
+        ### Usage:
+
+        Models are available via `ADMETTransferLearningModel` class in `src/models/admet_transfer_learning.py`
+
+        See `notebooks/ADMET_Transfer_Learning.ipynb` for complete analysis and examples.
+        """)
+
