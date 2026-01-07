@@ -49,6 +49,9 @@ class SMILESValidator(BaseValidator):
         if not smiles or len(smiles.strip()) == 0:
             return False, "SMILES string cannot be empty"
         
+        # Normalize input
+        smiles = smiles.strip()
+        
         if len(smiles) > self.max_length:
             return False, f"SMILES string too long (max {self.max_length} characters)"
         

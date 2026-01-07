@@ -425,11 +425,13 @@ def render():
 
                     st.markdown("""
                     <div class="info-box">
-                    The visualization below shows which atoms contribute to the predicted bioactivity:
+                    **Similarity Map Analysis:**
+                    The visualization below represents a **Similarity Map** derived from the Random Forest model.
+                    It shows how each atom contributes to the bioactivity prediction.
                     <ul>
-                        <li><strong>Green atoms:</strong> Increase binding activity</li>
-                        <li><strong>Red atoms:</strong> Decrease binding activity</li>
-                        <li><strong>White/neutral atoms:</strong> Minimal contribution</li>
+                        <li><span style="color: #43a047; font-weight: bold;">Green areas</span>: Atoms/substructures that <b>positively contribute</b> to bioactivity (increase pIC50).</li>
+                        <li><span style="color: #e53935; font-weight: bold;">Pink/Red areas</span>: Atoms/substructures that <b>negatively contribute</b> to bioactivity (decrease pIC50).</li>
+                        <li><span style="color: gray;">Grey/Colorless areas</span>: Neutral contribution.</li>
                     </ul>
                     </div>
                     """, unsafe_allow_html=True)
@@ -487,33 +489,61 @@ def render():
                     xai_col1, xai_col2 = st.columns([2, 1])
 
                     with xai_col1:
-                        if has_rdkit and results.get('xai_image') is not None:
-                            st.image(
-                                results['xai_image'],
-                                caption="RDKit Similarity Map - Atom Contributions",
-                                width="stretch"
-                            )
-                        else:
-                            st.info("XAI visualization requires trained model. Placeholder shown.")
-                            # Show placeholder heatmap
-                            import matplotlib.pyplot as plt
-                            fig, ax = plt.subplots(figsize=(8, 6))
-                            data = np.random.randn(10, 10)
-                            im = ax.imshow(data, cmap='RdYlGn', aspect='auto')
-                            ax.set_title("XAI Heatmap (Placeholder)")
-                            ax.set_xlabel("Feature Index")
-                            ax.set_ylabel("Atom Index")
-                            plt.colorbar(im, ax=ax, label="Contribution Score")
-                            st.pyplot(fig)
+                        # Generate Real XAI Visualization
+                        predictor = _get_model_predictor()
+                        if predictor:
+                            # 1. Random Forest XAI (Similarity Map)
+                            if "Random Forest" in model_type or model_type == "Both Models":
+                                if has_rdkit:
+                                    if model_type == "Both Models":
+                                        st.markdown("###### 🌲 Structure-based XAI (Random Forest)")
+                                    
+                                    with st.spinner("Generating Similarity Map..."):
+                                        xai_img = predictor.generate_xai_visualization(smiles_input)
+                                        
+                                    if xai_img:
+                                        st.image(
+                                            xai_img,
+                                            caption="RDKit Similarity Map (Model Weights)",
+                                            width="stretch"
+                                        )
+                                    else:
+                                        st.warning("Could not generate Similarity Map.")
+                                else:
+                                    st.info("RDKit required for Structure-based XAI.")
+
+                            # 2. LSTM/GRU XAI (Sequence Saliency Map)
+                            if "LSTM" in model_type or model_type == "Both Models":
+                                if model_type == "Both Models":
+                                    st.divider()
+                                    st.markdown("###### 🧠 Sequence-based XAI (LSTM/GRU)")
+                                
+                                st.caption("Saliency Map (Simulated Attention): Highlights key characters/motifs.")
+                                
+                                # Generate saliency
+                                saliency = predictor.generate_sequence_saliency(smiles_input)
+                                
+                                # Render Heatmap via HTML
+                                html_content = "<div style='background: white; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; line-height: 2.0; word-break: break-all;'>"
+                                for char, weight in saliency:
+                                    # Color: White to Red. 
+                                    # Opacity based on weight
+                                    opacity = weight * 0.7
+                                    bg_color = f"rgba(255, 0, 0, {opacity:.2f})"
+                                    font_weight = "bold" if weight > 0.5 else "normal"
+                                    html_content += f"<span style='background-color: {bg_color}; padding: 2px 4px; margin: 0 1px; border-radius: 3px; font-family: monospace; font-size: 1.1rem; font-weight: {font_weight};'>{char}</span>"
+                                html_content += "</div>"
+                                
+                                st.markdown(html_content, unsafe_allow_html=True)
 
                     with xai_col2:
-                        st.markdown("**Key Pharmacophores Detected:**")
+                        st.markdown("**🧬 Key Structural Features:**")
 
                         if has_rdkit and results.get('mol') is not None:
                             mol = results['mol']
-                            pharmacophores = []
+                            detected_features = []
                             
-                            # SMARTS patterns for functional groups
+                            # SMARTS patterns for common functional groups
                             patterns = {
                                 "Aromatic Ring": "a",
                                 "Hydroxyl Group (-OH)": "[OX2H]",
@@ -530,44 +560,23 @@ def render():
                                     pattern = Chem.MolFromSmarts(smarts)
                                     if mol.HasSubstructMatch(pattern):
                                         count = len(mol.GetSubstructMatches(pattern))
-                                        
-                                        # Determine contribution type (simplified logic based on general medicinal chemistry)
-                                        # In a real scenario, this would come from model feature importance
-                                        type_ = "positive"
-                                        score = 0.0
-                                        
-                                        if "Aromatic" in name: 
-                                            score = 0.35
-                                        elif "Hydroxyl" in name: 
-                                            score = 0.15
-                                        elif "Amine" in name: 
-                                            score = 0.25
-                                        elif "Halogen" in name: 
-                                            score = 0.10
-                                        elif "Carboxyl" in name: 
-                                            score = 0.28
-                                        elif "Ether" in name:
-                                            score = 0.05
-                                        else:
-                                            score = 0.10
-                                            
-                                        pharmacophores.append({
-                                            "name": f"{name} ({count})",
-                                            "contribution": score,
-                                            "type": type_
-                                        })
+                                        detected_features.append(f"{name} ({count})")
                                 except:
                                     pass
                                     
-                            if not pharmacophores:
-                                st.info("No specific key pharmacophores detected.")
+                            if not detected_features:
+                                st.info("No specific common functional groups detected.")
                             
-                            for pharm in pharmacophores:
-                                color = "🟢" if pharm['type'] == 'positive' else "🔴"
-                                st.markdown(f"{color} **{pharm['name']}**: +{pharm['contribution']:.2f}")
+                            for feature in detected_features:
+                                st.markdown(f"🔹 **{feature}**")
+                                
+                            st.caption("""
+                            **Note:** These are general chemical features present in the molecule. 
+                            Their positive or negative contribution to bioactivity depends on the specific chemical context, as shown in the **Similarity Map** (left).
+                            """)
                                 
                         else:
-                            st.info("RDKit required for pharmacophore detection.")
+                            st.info("RDKit required for feature detection.")
 
                     st.markdown("---")
 
@@ -730,9 +739,7 @@ def predict_bioactivity(smiles: str, model_type: str, has_rdkit: bool) -> dict:
             if mol:
                 results['mol'] = mol
 
-                # Generate XAI visualization (placeholder - would use actual model gradients)
-                # For now, create a simple colored structure
-                results['xai_image'] = Draw.MolToImage(mol, size=(600, 600))
+
 
         except Exception as e:
             print(f"RDKit processing error: {e}")

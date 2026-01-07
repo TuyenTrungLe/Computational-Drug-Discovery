@@ -174,9 +174,6 @@ if __name__ == "__main__":
     """, unsafe_allow_html=True)
 
     # ============ SIDEBAR NAVIGATION ============
-    st.sidebar.title("Navigation")
-    st.sidebar.markdown("---")
-
     # Use radio button for direct visibility
     page = st.sidebar.radio(
         "📍 Select Page",
@@ -284,25 +281,25 @@ if __name__ == "__main__":
         
         with col1:
             st.markdown("""
-            <div style='background: #e3f2fd; padding: 1rem; border-radius: 6px; border: 3px solid #1976d2;'>
-            <h3 style='color: #0d47a1; font-weight: 700;'>💊 Single Compound</h3>
-            <p style='color: #1565c0;'>Input SMILES to predict bioactivity with XAI explanations</p>
+            <div style='background: #e3f2fd; padding: 1rem; border-radius: 6px; border: 3px solid #1976d2; box-sizing: border-box; height: 180px; display: flex; flex-direction: column; justify-content: flex-start;'>
+            <div style='color: #0d47a1; font-weight: 700; font-size: 1.3rem; margin-bottom: 0.5rem;'>💊 Single Compound</div>
+            <p style='color: #1565c0; font-size: 0.95rem; line-height: 1.4;'>Input SMILES to predict bioactivity with XAI explanations</p>
             </div>
             """, unsafe_allow_html=True)
         
         with col2:
             st.markdown("""
-            <div style='background: #f3e5f5; padding: 1rem; border-radius: 6px; border: 3px solid #7b1fa2;'>
-            <h3 style='color: #4a148c; font-weight: 700;'>📊 Batch Analysis</h3>
-            <p style='color: #6a1b9a;'>Screen thousands of compounds from CSV files</p>
+            <div style='background: #f3e5f5; padding: 1rem; border-radius: 6px; border: 3px solid #7b1fa2; box-sizing: border-box; height: 180px; display: flex; flex-direction: column; justify-content: flex-start;'>
+            <div style='color: #4a148c; font-weight: 700; font-size: 1.3rem; margin-bottom: 0.5rem;'>📊 Batch Analysis</div>
+            <p style='color: #6a1b9a; font-size: 0.95rem; line-height: 1.4;'>Screen thousands of compounds from CSV files</p>
             </div>
             """, unsafe_allow_html=True)
         
         with col3:
             st.markdown("""
-            <div style='background: #e8f5e9; padding: 1rem; border-radius: 6px; border: 3px solid #388e3c;'>
-            <h3 style='color: #1b5e20; font-weight: 700;'>🎯 ADMET Filter</h3>
-            <p style='color: #2e7d32;'>Apply safety filters to identify drug candidates</p>
+            <div style='background: #e8f5e9; padding: 1rem; border-radius: 6px; border: 3px solid #388e3c; box-sizing: border-box; height: 180px; display: flex; flex-direction: column; justify-content: flex-start;'>
+            <div style='color: #1b5e20; font-weight: 700; font-size: 1.3rem; margin-bottom: 0.5rem;'>🎯 ADMET Filter</div>
+            <p style='color: #2e7d32; font-size: 0.95rem; line-height: 1.4;'>Apply safety filters to identify drug candidates</p>
             </div>
             """, unsafe_allow_html=True)
         

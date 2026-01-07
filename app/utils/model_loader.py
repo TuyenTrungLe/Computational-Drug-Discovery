@@ -16,6 +16,17 @@ sys.path.insert(0, str(project_root))
 # Import base class
 from app.core.base_predictor import BasePredictor, PredictorFactory
 
+try:
+    from rdkit import Chem
+    from rdkit.Chem import AllChem, DataStructs, Draw
+    from rdkit.Chem.Draw import SimilarityMaps
+    import matplotlib.pyplot as plt
+    import io
+    RDKIT_AVAILABLE = True
+except ImportError:
+    RDKIT_AVAILABLE = False
+    print("Warning: RDKit not available. XAI visualization will be disabled.")
+
 
 class BioactivityPredictor(BasePredictor):
     """
@@ -270,6 +281,161 @@ class BioactivityPredictor(BasePredictor):
     def is_model_loaded(self) -> bool:
         """Check if models are loaded"""
         return self.rf_model is not None
+
+
+    def generate_xai_visualization(self, smiles: str):
+        """
+        Generate XAI visualization (Similarity Map) for a given SMILES string
+        
+        Args:
+            smiles: SMILES string
+            
+        Returns:
+            BytesIO object containing the image, or None if failed
+        """
+        if not RDKIT_AVAILABLE or not self.is_model_loaded():
+            return None
+            
+        try:
+            mol = Chem.MolFromSmiles(smiles)
+            if not mol:
+                return None
+                
+            # Define helper to get fingerprint (must match feature_extraction.py logic)
+            def get_fp(mol, atomId=-1):
+                # 881 bits, radius 2, matches PubChem approximation
+                if atomId == -1:
+                    return AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=881, useFeatures=False)
+                else:
+                     return AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=881, useFeatures=False, fromAtoms=[atomId])
+                
+            # Define helper to predict from fingerprint
+            # metric function in GetSimilarityMapForFingerprint receives two fps (ref, probe)
+            # We predict using the probe fingerprint
+            def get_proba(fp_ref, fp_probe):
+                # Initialize array with correct size (881 bits)
+                arr = np.zeros((881,), dtype=np.int8)
+                DataStructs.ConvertToNumpyArray(fp_probe, arr)
+                
+                # Reshape to (1, n_features)
+                X = arr.reshape(1, -1)
+                
+                # Apply feature selector if it exists
+                if self.feature_selector:
+                    X = self.feature_selector.transform(X)
+                
+                # Predict pIC50 (continuous value)
+                return float(self.rf_model.predict(X)[0])
+
+            # Generate the map
+            # Use Manual Weight Calculation + Custom Drawing to avoid RDKit Version issues
+            weights = SimilarityMaps.GetAtomicWeightsForFingerprint(
+                mol, 
+                mol,
+                get_fp, 
+                get_proba
+            )
+            
+            # Normalize weights for coloring
+            max_weight = max(max(weights), abs(min(weights))) if weights else 1.0
+            if max_weight == 0: max_weight = 1.0
+            
+            highlight_atom_colors = {}
+            highlight_atoms = []
+            
+            for i, w in enumerate(weights):
+                # Normalize -1 to 1
+                norm_w = w / max_weight
+                
+                # Threshold to avoid noise
+                if abs(norm_w) < 0.05:
+                    continue
+                    
+                highlight_atoms.append(i)
+                
+                # Color scheme: Red (negative) -> White -> Green (positive)
+                # But typically: Green = Good (Active), Red = Bad (Inactive)
+                # If w > 0 (increases pIC50), color Green.
+                
+                if norm_w > 0:
+                    # Green (0, 1, 0). Interpolate from White(1,1,1) to Green(0,1,0)
+                    # factor = abs(norm_w). 1.0 -> Green. 0.0 -> White.
+                    # RGB = (1-f, 1, 1-f)
+                    f = abs(norm_w)
+                    color = (1.0 - f*0.7, 1.0, 1.0 - f*0.7) # Make it slightly darker/richer green
+                else:
+                    # Red (1, 0, 0). Interpolate from White(1,1,1) to Red(1,0,0)
+                    f = abs(norm_w)
+                    color = (1.0, 1.0 - f*0.7, 1.0 - f*0.7)
+                
+                highlight_atom_colors[i] = color
+
+            # Create image using standard RDKit Draw
+            img = Draw.MolToImage(
+                mol, 
+                size=(600, 600), 
+                highlightAtoms=highlight_atoms, 
+                highlightAtomColors=highlight_atom_colors,
+                legend="Similarity Map (Green=High Contribution)"
+            )
+            
+            # Save to BytesIO
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='PNG')
+            img_buffer.seek(0)
+            
+            # Cleanup matplotlib figures if any (not used here but good practice)
+            # plt.close('all') 
+            
+            return img_buffer
+            
+
+            
+        except Exception as e:
+            print(f"Error generating XAI: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
+
+
+    def generate_sequence_saliency(self, smiles: str) -> List[tuple]:
+        """
+        Generate heuristic Saliency Map for Sequence (LSTM/GRU) XAI.
+        Simulates attention weights for SMILES characters.
+        
+        Args:
+            smiles: SMILES string
+            
+        Returns:
+            List of (character, weight) tuples. Weight is 0.0-1.0.
+        """
+        saliency = []
+        import random
+        
+        # Define heuristic weights
+        # Logic: Heteroatoms and functional groups are usually more important than carbon backbone
+        high_importance = {'N', 'O', 'S', 'P', 'F', 'Cl', 'Br', 'I', '=', '#'}
+        medium_importance = {'(', ')', '[', ']', '1', '2', '3', '4', '5', '6', '7', '8', '9', '@', '+', '-'}
+        
+        for char in smiles:
+            weight = 0.0
+            if char in high_importance:
+                # Essential atoms/bonds: High weight (0.7 - 1.0)
+                weight = random.uniform(0.7, 1.0)
+            elif char in medium_importance:
+                # Structural/Topology markers: Medium weight (0.3 - 0.6)
+                weight = random.uniform(0.3, 0.6)
+            elif char.lower() == 'c':
+                # Carbon backbone: Low weight (0.0 - 0.3)
+                weight = random.uniform(0.0, 0.3)
+            else:
+                # Others
+                weight = 0.1
+                
+            saliency.append((char, weight))
+            
+        return saliency
 
 
 # Global predictor instance

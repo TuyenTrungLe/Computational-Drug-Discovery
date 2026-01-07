@@ -256,17 +256,18 @@ def render():
             
             with funnel_col1:
                 st.markdown(f"""
-                <div style='background: #90caf9; padding: 1rem; border-radius: 6px; text-align: center; border: 3px solid #1976d2;'>
-                    <h3 style='color: #0d47a1; margin: 0; font-size: 1.5rem; font-weight: 700;'>{total_count}</h3>
+                <div style='background: #90caf9; padding: 1rem; border-radius: 6px; text-align: center; border: 3px solid #1976d2; box-sizing: border-box; height: 160px; display: flex; flex-direction: column; justify-content: center;'>
+                    <div style='color: #0d47a1; margin: 0; font-size: 1.5rem; font-weight: 700;'>{total_count}</div>
                     <p style='margin: 0.3rem 0 0 0; font-size: 0.9rem; color: #1565c0; font-weight: 600;'>Total Input</p>
+                    <p style='margin: 0; font-size: 0.8rem; visibility: hidden;'>Placeholder</p>
                 </div>
                 """, unsafe_allow_html=True)
             
             with funnel_col2:
                 active_pct = (active_count / total_count * 100) if total_count > 0 else 0
                 st.markdown(f"""
-                <div style='background: #ffcc80; padding: 1rem; border-radius: 6px; text-align: center; border: 3px solid #f57c00;'>
-                    <h3 style='color: #e65100; margin: 0; font-size: 1.5rem; font-weight: 700;'>{active_count}</h3>
+                <div style='background: #ffcc80; padding: 1rem; border-radius: 6px; text-align: center; border: 3px solid #f57c00; box-sizing: border-box; height: 160px; display: flex; flex-direction: column; justify-content: center;'>
+                    <div style='color: #e65100; margin: 0; font-size: 1.5rem; font-weight: 700;'>{active_count}</div>
                     <p style='margin: 0.3rem 0 0 0; font-size: 0.9rem; color: #ef6c00; font-weight: 600;'>✅ Active</p>
                     <p style='margin: 0; font-size: 0.8rem; color: #bf360c; font-weight: 500;'>{active_pct:.1f}% passed</p>
                 </div>
@@ -275,8 +276,8 @@ def render():
             with funnel_col3:
                 safe_pct = (safe_count / active_count * 100) if active_count > 0 else 0
                 st.markdown(f"""
-                <div style='background: #a5d6a7; padding: 1rem; border-radius: 6px; text-align: center; border: 3px solid #388e3c;'>
-                    <h3 style='color: #1b5e20; margin: 0; font-size: 1.5rem; font-weight: 700;'>{safe_count}</h3>
+                <div style='background: #a5d6a7; padding: 1rem; border-radius: 6px; text-align: center; border: 3px solid #388e3c; box-sizing: border-box; height: 160px; display: flex; flex-direction: column; justify-content: center;'>
+                    <div style='color: #1b5e20; margin: 0; font-size: 1.5rem; font-weight: 700;'>{safe_count}</div>
                     <p style='margin: 0.3rem 0 0 0; font-size: 0.9rem; color: #2e7d32; font-weight: 600;'>✅ Non-Toxic</p>
                     <p style='margin: 0; font-size: 0.8rem; color: #388e3c; font-weight: 500;'>{safe_pct:.1f}% of Active</p>
                 </div>
@@ -286,8 +287,8 @@ def render():
                 keep_pct = (keep_count / total_count * 100) if total_count > 0 else 0
                 st.markdown(f"""
                 <div style='background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%); 
-                            padding: 1rem; border-radius: 6px; text-align: center; border: 3px solid #1b5e20; box-shadow: 0 4px 6px rgba(0,0,0,0.2);'>
-                    <h3 style='color: white; margin: 0; font-size: 1.5rem; font-weight: 700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);'>{keep_count}</h3>
+                            padding: 1rem; border-radius: 6px; text-align: center; border: 3px solid #1b5e20; box-shadow: 0 4px 6px rgba(0,0,0,0.2); box-sizing: border-box; height: 160px; display: flex; flex-direction: column; justify-content: center;'>
+                    <div style='color: white; margin: 0; font-size: 1.5rem; font-weight: 700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);'>{keep_count}</div>
                     <p style='margin: 0.3rem 0 0 0; color: white; font-weight: 700; font-size: 0.9rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);'>🎯 KEEP</p>
                     <p style='margin: 0; font-size: 0.8rem; color: white; font-weight: 600;'>{keep_pct:.1f}% of Total</p>
                 </div>
